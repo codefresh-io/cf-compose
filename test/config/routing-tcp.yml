@@ -1,0 +1,9 @@
+lb:
+  image: lb
+  links:
+    - mongo
+  routing:
+     27017/tcp:
+
+mongo:
+  image: mongo

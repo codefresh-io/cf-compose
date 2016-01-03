@@ -1,0 +1,73 @@
+lb:
+  image: codefresh/cf-lb:develop
+  links:
+    - ui
+    - api
+  ports:
+    - 80:80
+  routing:
+    80:
+      - "http://*/api/*": api
+      - "http://*/*": ui
+
+ui:
+  image: codefresh/cf-ui:develop
+  scale: 2
+
+api:
+  image: codefresh/cf-api:develop
+  scale: 2
+  links:
+    - cfqueue:queue.server
+    - mongo:mongo
+  environment:
+    MONGO_URI: mongo:27017/local
+    HOOK_CALLBACK_BUILD:
+    HOOK_GITHUB_URL:
+    HOOK_BITBUCKET_URL:
+
+rt:
+  image: codefresh/cf-runtime:develop
+  scale: 2
+  links:
+    - cfqueue:queue.server
+#    - rt1
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    - /Users/Shared/tmp/codefresh/builds/:/builds/
+    - /Users/Shared/tmp/codefresh/cache/:/cache/
+  privileged: true
+  environment:
+    ACCOUNT: codefresh
+    RUNTIME_ID: rt{{index}}
+    BUILD_PATH_ON_RUNTIME_MACHINE: /builds/
+    BUILD_PATH_ON_RUNTIME_HOST: /Users/Shared/tmp/codefresh/builds/
+    CACHE_PATH: /cache/
+
+cfqueue:
+  image: codefresh/cf-lb:develop
+  links:
+    - queue1
+    - queue2
+  routing:
+    4222/tcp:
+
+queue1:
+  image: nats:0.7.2
+  command: -D
+  volumes:
+    - /bin/echo:/bin/echo
+
+queue2:
+  image: nats:0.7.2
+  command: -D --routes=nats-route://ruser:T0pS3cr3t@queue1:6222
+  volumes:
+    - /bin/echo:/bin/echo
+  links:
+    - queue1
+
+mongo:
+  image: mongo:latest
+  command: mongod --smallfiles
+  volumes:
+    - /opt/codefresh/mongo:/data/db

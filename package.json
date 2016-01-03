@@ -1,0 +1,26 @@
+{
+  "name": "cf-compose",
+  "version": "0.0.1",
+  "description": "codefresh compose utility",
+  "main": "index.js",
+  "bin": {
+    "cf-compose": "index.js"
+  },
+  "scripts": {
+    "test": "./node_modules/mocha/bin/mocha -R spec"
+  },
+  "author": "Guy Balteriski <guy@codefresh.io> (http://codefresh.io/)",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^2.9.0",
+    "js-yaml": "^3.4.6",
+    "lodash": "^3.10.1",
+    "mustache": "^2.2.1",
+    "q": "^1.4.1",
+    "yamljs": "^0.2.4"
+  },
+  "devDependencies": {
+    "chai": "~1.7.0",
+    "mocha": "~1.12.0"
+  }
+}

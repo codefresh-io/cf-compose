@@ -1,0 +1,16 @@
+lb:
+ image: lb
+ routing:
+   80:
+    - "http://*/test1": service1
+    - "http://*/test2": service2
+    - "http://*/*":     service3
+
+service1:
+  image: service
+
+service2:
+  image: service
+
+service3:
+  image: service
