@@ -1,5 +1,9 @@
 #!/usr/bin/env node
 
+var Transformer = require('./lib/transformer');
+module.exports = Transformer;
+
+/*
 var fs = require('fs');
 var os = require('os');
 var path = require('path');
@@ -96,3 +100,4 @@ convertFile()
         console.error(err);
     });
 
+*/
