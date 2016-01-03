@@ -1,11 +1,31 @@
 var expect      = require('chai').expect;
 var path        = require('path');
 var _           = require('lodash');
+var Q           = require('q');
 var YAML        = require('yamljs');
 
 var Transformer = require('../lib/transformer');
 
 var tests_docker_compose = [
+    {
+        name: 'handlers',
+        file: 'config/handlers.yml',
+        handlers: {
+            service: function(info) {
+                var result = info.result;
+                _.forEach(result, function(item) {
+                    delete item.service;
+                    item.image = 'this is image';
+                });
+                return Q.resolve();
+            }
+        },
+        expected: {
+            "service1": {
+                "image": "this is image"
+            }
+        }
+    },
     {
         name: 'routing simple',
         file: 'config/routing-simple.yml',
@@ -201,7 +221,8 @@ describe("compose", function() {
                 it(test.name, function(done) {
 
                     var transformer = new Transformer({
-                        file: path.join(__dirname, test.file)
+                        file: path.join(__dirname, test.file),
+                        handlers: test.handlers
                     });
 
                     transformer.toDockerCompose()
@@ -209,7 +230,7 @@ describe("compose", function() {
 
                             result = YAML.parse(result);
 
-                            if (test.expected) {
+                            if (!test.expected) {
                                 console.log(JSON.stringify(result, null, 2));
                             }
 

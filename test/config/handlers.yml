@@ -1,0 +1,2 @@
+service1:
+ service: codefresh/service1:develop
