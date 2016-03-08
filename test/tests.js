@@ -1,8 +1,8 @@
-var expect      = require('chai').expect;
-var path        = require('path');
-var _           = require('lodash');
-var Q           = require('q');
-var YAML        = require('yamljs');
+var expect = require('chai').expect;
+var path = require('path');
+var _ = require('lodash');
+var Q = require('q');
+var YAML = require('yamljs');
 
 var Transformer = require('../lib/transformer');
 
@@ -11,9 +11,9 @@ var tests_docker_compose = [
         name: 'handlers',
         file: 'config/handlers.yml',
         handlers: {
-            service: function(info) {
+            service: function (info) {
                 var result = info.result;
-                _.forEach(result, function(item) {
+                _.forEach(result, function (item) {
                     delete item.service;
                     item.image = 'this is image';
                 });
@@ -208,37 +208,107 @@ var tests_docker_compose = [
                 ]
             }
         }
+    },
+    {
+        name: 'compose-v2',
+        file: 'config/compose-v2.yml',
+        expected: {
+            "version": "2",
+            "services": {
+                "redis": {
+                    "image": "redis",
+                    "networks": [
+                        "back-tier"
+                    ],
+                    "volumes": [
+                        "redis-data:/var/lib/redis"
+                    ]
+                },
+                "web": {
+                    "image": "jim/jimbob",
+                    "networks": [
+                        "front-tier",
+                        "back-tier"
+                    ],
+                    "ports": [
+                        "5000:5000"
+                    ],
+                    "volumes": [
+                        ".:/code"
+                    ]
+                }
+            },
+            "volumes": {
+                "redis-data": {
+                    "driver": "local"
+                }
+            },
+            "networks": {
+                "back-tier": {
+                    "driver": "bridge"
+                },
+                "front-tier": {
+                    "driver": "bridge"
+                }
+            }
+        }
     }
 ];
-describe("compose", function() {
+describe("Transform composition", function () {
 
-    describe("transfer", function () {
+    describe("From file", function () {
 
-        describe("docker compose", function () {
+        _.forEach(tests_docker_compose, function (test) {
 
-            _.forEach(tests_docker_compose, function(test) {
+            it(test.name, function (done) {
 
-                it(test.name, function(done) {
-
-                    var transformer = new Transformer({
-                        file: path.join(__dirname, test.file),
-                        handlers: test.handlers
-                    });
-
-                    transformer.toDockerCompose()
-                        .then(function(result) {
-
-                            result = YAML.parse(result);
-
-                            if (!test.expected) {
-                                console.log(JSON.stringify(result, null, 2));
-                            }
-
-                            expect(result).to.deep.equal(test.expected);
-                        })
-                        .done(done, done);
+                var transformer = new Transformer({
+                    file: path.join(__dirname, test.file),
+                    handlers: test.handlers
                 });
+
+                transformer.fileToCompose()
+                    .then(function (result) {
+
+                        result = YAML.parse(result);
+
+                        if (!test.expected) {
+                            console.log(JSON.stringify(result, null, 2));
+                        }
+
+                        expect(result).to.deep.equal(test.expected);
+                    })
+                    .done(done, done);
             });
         });
+    });
+
+    it("From YAML", function (done) {
+        var transformer = new Transformer({});
+
+        transformer.yamlToCompose('web:\n  image: jim/jimbob\n  ports:\n   - "5000:5000"')
+            .then(function (result) {
+
+                result = YAML.parse(result);
+                expect(result).to.deep.equal({"web": {"image": "jim/jimbob", "ports": ["5000:5000"]}});
+                done()
+            })
+            .catch(function (err) {
+                done(err)
+            });
+    });
+
+    it("From JSON", function (done) {
+        var transformer = new Transformer({});
+
+        transformer.jsonToCompose('{"web" : {"image" : "jim/jimbob", "ports" : ["6000:6000"]}}')
+            .then(function (result) {
+                result = YAML.parse(result);
+                expect(result).to.deep.equal({"web": {"image": "jim/jimbob", "ports": ["6000:6000"]}});
+                done()
+            })
+            .catch(function (err) {
+                done(err)
+            });
     });
 });
