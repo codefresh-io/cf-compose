@@ -284,13 +284,15 @@ describe("Transform composition", function () {
     });
 
     it("From YAML", function (done) {
-        var transformer = new Transformer({});
+        var transformer = new Transformer({
+            envVars: [{key: 'ASD', value: 'thiisthevalue'}]
+        });
 
-        transformer.yamlToCompose('web:\n  image: jim/jimbob\n  ports:\n   - "5000:5000"')
+        transformer.yamlToCompose('web:\n  image: jim/jimbob\n  ports:\n   - "5000:5000"\n  environment:\n    ASD: $ASD\n')
             .then(function (result) {
 
                 result = YAML.parse(result);
-                expect(result).to.deep.equal({"web": {"image": "jim/jimbob", "ports": ["5000:5000"]}});
+                expect(result).to.deep.equal({"web": {"image": "jim/jimbob", "ports": ["5000:5000"], "environment": {"ASD": "thiisthevalue"}}});
                 done()
             })
             .catch(function (err) {
@@ -299,12 +301,14 @@ describe("Transform composition", function () {
     });
 
     it("From JSON", function (done) {
-        var transformer = new Transformer({});
+        var transformer = new Transformer({
+            envVars: [{key: 'ASD', value: 'thiisthevalue'}]
+        });
 
-        transformer.jsonToCompose('{"web" : {"image" : "jim/jimbob", "ports" : ["6000:6000"]}}')
+        transformer.jsonToCompose('{"web" : {"image" : "jim/jimbob", "ports" : ["6000:6000"], "environment": {"ASD": "$ASD"}}}')
             .then(function (result) {
                 result = YAML.parse(result);
-                expect(result).to.deep.equal({"web": {"image": "jim/jimbob", "ports": ["6000:6000"]}});
+                expect(result).to.deep.equal({"web": {"image": "jim/jimbob", "ports": ["6000:6000"], "environment": {"ASD": "thiisthevalue"}}});
                 done()
             })
             .catch(function (err) {
