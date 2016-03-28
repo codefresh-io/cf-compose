@@ -285,7 +285,7 @@ describe("Transform composition", function () {
 
     it("From YAML", function (done) {
         var transformer = new Transformer({
-            envVars: [{key: 'ASD', value: 'thiisthevalue'}]
+            compositionVars: [{key: 'ASD', value: 'thiisthevalue'}]
         });
 
         transformer.yamlToCompose('web:\n  image: jim/jimbob\n  ports:\n   - "5000:5000"\n  environment:\n    ASD: $ASD\n')
@@ -302,7 +302,7 @@ describe("Transform composition", function () {
 
     it("From JSON", function (done) {
         var transformer = new Transformer({
-            envVars: [{key: 'ASD', value: 'thiisthevalue'}]
+            compositionVars: [{key: 'ASD', value: 'thiisthevalue'}]
         });
 
         transformer.jsonToCompose('{"web" : {"image" : "jim/jimbob", "ports" : ["6000:6000"], "environment": {"ASD": "$ASD"}}}')
