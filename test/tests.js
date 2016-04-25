@@ -315,4 +315,46 @@ describe("Transform composition", function () {
                 done(err)
             });
     });
+
+    it("From YAML with explicit ports and intrusive validation switched on", function (done) {
+        var transformer = new Transformer({
+            validateIntrusiveFeatures: true
+        });
+
+        transformer.yamlToCompose('web:\n  image: jim/jimbob\n  ports:\n   - "5000:5000"\n')
+            .then(function () {
+                done("The test should have failed on intrusive feature validation")
+            }, function (err) {
+                expect(err.message).to.equal("Composition cannot explicitly export any ports");
+                done();
+            });
+    });
+
+    it("From YAML with mounted volumes and intrusive validation switched on", function (done) {
+        var transformer = new Transformer({
+            validateIntrusiveFeatures: true
+        });
+
+        transformer.yamlToCompose('web:\n  image: jim/jimbob\n  volumes:\n   - "/jim/bob:/j/b"\n')
+            .then(function () {
+                done("The test should have failed on intrusive feature validation")
+            }, function (err) {
+                expect(err.message).to.equal("Composition cannot mount any volumes");
+                done();
+            });
+    });
+
+    it("From YAML with volumes_from and intrusive validation switched on", function (done) {
+        var transformer = new Transformer({
+            validateIntrusiveFeatures: true
+        });
+
+        transformer.yamlToCompose('web:\n  image: jim/jimbob\n  volumes_from:\n   - "theotherimage"\n')
+            .then(function () {
+                done("The test should have failed on intrusive feature validation")
+            }, function (err) {
+                expect(err.message).to.equal("Composition cannot mount any volumes");
+                done();
+            });
+    });
 });
