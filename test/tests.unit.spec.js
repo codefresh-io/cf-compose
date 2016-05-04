@@ -293,10 +293,10 @@ describe("Transform composition", function () {
 
                 result = YAML.parse(result);
                 expect(result).to.deep.equal({"web": {"image": "jim/jimbob", "ports": ["5000:5000"], "environment": {"ASD": "thiisthevalue"}}});
-                done()
+                done();
             })
             .catch(function (err) {
-                done(err)
+                done(err);
             });
     });
 
@@ -309,10 +309,10 @@ describe("Transform composition", function () {
             .then(function (result) {
                 result = YAML.parse(result);
                 expect(result).to.deep.equal({"web": {"image": "jim/jimbob", "ports": ["6000:6000"], "environment": {"ASD": "thiisthevalue"}}});
-                done()
+                done();
             })
             .catch(function (err) {
-                done(err)
+                done(err);
             });
     });
 
@@ -323,7 +323,7 @@ describe("Transform composition", function () {
 
         transformer.yamlToCompose('web:\n  image: jim/jimbob\n  ports:\n   - "5000:5000"\n')
             .then(function () {
-                done("The test should have failed on intrusive feature validation")
+                done("The test should have failed on intrusive feature validation");
             }, function (err) {
                 expect(err.message).to.equal("Composition cannot explicitly export any ports");
                 done();
@@ -337,7 +337,7 @@ describe("Transform composition", function () {
 
         transformer.yamlToCompose('web:\n  image: jim/jimbob\n  volumes:\n   - "/jim/bob:/j/b"\n')
             .then(function () {
-                done("The test should have failed on intrusive feature validation")
+                done("The test should have failed on intrusive feature validation");
             }, function (err) {
                 expect(err.message).to.equal("Composition cannot mount any volumes");
                 done();
@@ -351,7 +351,7 @@ describe("Transform composition", function () {
 
         transformer.yamlToCompose('web:\n  image: jim/jimbob\n  volumes_from:\n   - "theotherimage"\n')
             .then(function () {
-                done("The test should have failed on intrusive feature validation")
+                done("The test should have failed on intrusive feature validation");
             }, function (err) {
                 expect(err.message).to.equal("Composition cannot mount any volumes");
                 done();
