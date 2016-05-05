@@ -1,0 +1,6 @@
+version: '2'
+services:
+    image: codefresh/cf-runtime:develop
+    privileged: true
+
+

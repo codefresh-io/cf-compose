@@ -252,6 +252,18 @@ var tests_docker_compose = [
                 }
             }
         }
+    },
+    {
+        name: 'field_not_string',
+        file: 'config/field_not_string.yml',
+        compositionVars: [{key: 'key', value: 'value'}],
+        expected: {
+            "version": "2",
+            "services": {
+                "image": "codefresh/cf-runtime:develop",
+                "privileged": true
+            }
+        }
     }
 ];
 describe("Transform composition", function () {
@@ -264,7 +276,8 @@ describe("Transform composition", function () {
 
                 var transformer = new Transformer({
                     file: path.join(__dirname, test.file),
-                    handlers: test.handlers
+                    handlers: test.handlers,
+                    compositionVars: test.compositionVars || []
                 });
 
                 transformer.fileToCompose()
