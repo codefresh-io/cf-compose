@@ -357,4 +357,64 @@ describe("Transform composition", function () {
                 done();
             });
     });
+
+    it("should run transform handler after replacement of composition vars", function () {
+        var handlers = {
+            image: function (info) {
+                expect(info.result.web.environment.ASD).to.equal("thiisthevalue");
+            }
+        };
+        var transformer = new Transformer({
+            file: path.join(__dirname, 'config/transform1.yml'),
+            handlers: handlers,
+            compositionVars: [{key: 'ASD', value: 'thiisthevalue'}]
+        });
+
+        var expected = {
+            "version": "2",
+            "services": {
+                "web": {
+                    "environment": {
+                        "ASD": "thiisthevalue"
+                    },
+                    "image": "jim/jimbob"
+                }
+            }
+        };
+
+        return transformer.fileToCompose()
+            .then(function (result) {
+
+                result = YAML.parse(result);
+
+                expect(result).to.deep.equal(expected);
+            });
+    });
+
+    it("should replace composition variables even if it is a part of a string", function () {
+        var transformer = new Transformer({
+            file: path.join(__dirname, 'config/transform2.yml'),
+            compositionVars: [{key: 'ASD', value: 'is'}]
+        });
+
+        var expected = {
+            "version": "2",
+            "services": {
+                "web": {
+                    "environment": {
+                        "envvar": "thisisvalue"
+                    },
+                    "image": "jim/jimbob"
+                }
+            }
+        };
+
+        return transformer.fileToCompose()
+            .then(function (result) {
+
+                result = YAML.parse(result);
+
+                expect(result).to.deep.equal(expected);
+            });
+    });
 });
