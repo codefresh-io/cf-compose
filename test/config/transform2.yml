@@ -1,0 +1,6 @@
+version: '2'
+services:
+  web:
+    image: jim/jimbob
+    environment:
+        envvar: this$ASDvalue
