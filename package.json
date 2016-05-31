@@ -1,6 +1,6 @@
 {
   "name": "cf-compose",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "codefresh compose utility",
   "main": "index.js",
   "bin": {

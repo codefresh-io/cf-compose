@@ -1,0 +1,5 @@
+version: '2'
+services:
+    image: $KEY1 $KEY2
+
+

@@ -264,6 +264,17 @@ var tests_docker_compose = [
                 "privileged": true
             }
         }
+    },
+    {
+        name: '2 vars in one string',
+        file: 'config/multiple_vars_in_string.yml',
+        compositionVars: [{key: 'KEY1', value: 'value1'}, {key: 'KEY2', value: 'value2'}],
+        expected: {
+            "version": "2",
+            "services": {
+                "image": "value1 value2"
+            }
+        }
     }
 ];
 describe("Transform composition", function () {
