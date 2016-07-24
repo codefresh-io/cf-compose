@@ -340,6 +340,22 @@ describe("Transform composition", function () {
             });
     });
 
+    it("From object", function (done) {
+        var transformer = new Transformer({
+            compositionVars: [{key: 'ASD', value: 'thiisthevalue'}]
+        });
+
+        transformer.objectToCompose({web: {image: 'jim/bob', ports: ['6000:6000'], environment: {ASD: '$ASD'}}})
+            .then(function (result) {
+                result = YAML.parse(result);
+                expect(result).to.deep.equal({"web": {"image": "jim/bob", "ports": ["6000:6000"], "environment": {"ASD": "thiisthevalue"}}});
+                done();
+            })
+            .catch(function (err) {
+                done(err);
+            });
+    });
+
     it("From YAML with explicit ports and intrusive validation switched on", function (done) {
         var transformer = new Transformer({
             validateIntrusiveFeatures: true
