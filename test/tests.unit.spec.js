@@ -386,7 +386,7 @@ describe("Transform composition", function () {
         return transformer.yamlToCompose('web:\n  image: jim/jimbob\n  volumes:\n   - "/j/b"\n');
     });
 
-    it.only("From YAML with container volume and defined outside services", () => {
+    it("From YAML with container volume and defined outside services", () => {
         var transformer = new Transformer({
             validateIntrusiveFeatures: true
         });
