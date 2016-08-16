@@ -375,12 +375,7 @@ describe("Transform composition", function () {
             validateIntrusiveFeatures: true
         });
 
-        return transformer.yamlToCompose('web:\n  image: jim/jimbob\n  volumes:\n   - "/j/b"\n')
-            .then(function () {
-            return Q.reject(new Error('The test should have failed on intrusive feature validation'));
-        }, function (err) {
-            expect(err.message).to.equal('Composition cannot mount volumes from the local filesystem');
-        });
+        return transformer.yamlToCompose('web:\n  image: jim/jimbob\n  volumes:\n   - "/j/b"\n');
     });
 
     it("From YAML with auto-created volume and intrusive validation switched off", () => {
