@@ -386,6 +386,28 @@ describe("Transform composition", function () {
         return transformer.yamlToCompose('web:\n  image: jim/jimbob\n  volumes:\n   - "/j/b"\n');
     });
 
+    it.only("From YAML with container volume and defined outside services", () => {
+        var transformer = new Transformer({
+            validateIntrusiveFeatures: true
+        });
+
+        return transformer.yamlToCompose('version: \'2.0\'\nservices:\n  web:\n    image: jim/jimbob\n    volumes:\n     - "some-container-volume:/j/b"\nvolumes:\n  data:\n   external: some-container-volume');
+    });
+
+    it("From YAML with container volume and defined outside services", () => {
+        var transformer = new Transformer({
+            validateIntrusiveFeatures: true
+        });
+
+        return transformer.yamlToCompose('version: \'2.0\'\nservices:\n  web:\n    image: jim/jimbob\n    volumes:\n     - "/j/b:/j/b"\nvolumes:\n  data:\n   external: some-container-volume')
+            .then(function () {
+                return Q.reject(new Error('The test should have failed on intrusive feature validation'));
+            }, function (err) {
+                expect(err.message).to.equal('Composition cannot mount volumes from the local filesystem');
+            });
+    });
+
+
     it("From YAML with container volume and intrusive validation switched on", () => {
         var transformer = new Transformer({
             validateIntrusiveFeatures: true
