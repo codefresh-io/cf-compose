@@ -356,94 +356,127 @@ describe("Transform composition", function () {
             });
     });
 
-    it("From YAML with explicit ports and intrusive validation switched on", function (done) {
-        var transformer = new Transformer({
-            validateIntrusiveFeatures: true
-        });
+    describe('intrusive checks', function() {
 
-        transformer.yamlToCompose('web:\n  image: jim/jimbob\n  ports:\n   - "5000:5000"\n')
-            .then(function () {
-                done("The test should have failed on intrusive feature validation");
-            }, function (err) {
-                expect(err.message).to.equal("Composition cannot explicitly export any ports");
-                done();
+        describe('ports', function() {
+
+            it("From YAML with explicit ports and intrusive validation switched on", function (done) {
+                var transformer = new Transformer({
+                    validateIntrusiveFeatures: true
+                });
+
+                transformer.yamlToCompose('web:\n  image: jim/jimbob\n  ports:\n   - "5000:5000"\n')
+                    .then(function () {
+                        done("The test should have failed on intrusive feature validation");
+                    }, function (err) {
+                        expect(err.message).to.equal("Composition cannot explicitly export any ports");
+                        done();
+                    });
             });
-    });
 
-    it("From YAML with auto-created volume and intrusive validation switched on", () => {
-        var transformer = new Transformer({
-            validateIntrusiveFeatures: true
-        });
+            it("From YAML with explicit ports and intrusive validation switched on and disable intrusive validation flag enabled on a service", function () {
+                var transformer = new Transformer({
+                    validateIntrusiveFeatures: true
+                });
 
-        return transformer.yamlToCompose('web:\n  image: jim/jimbob\n  volumes:\n   - "/j/b"\n');
-    });
-
-    it("From YAML with auto-created volume and intrusive validation switched off", () => {
-        var transformer = new Transformer({
-            validateIntrusiveFeatures: false
-        });
-
-        return transformer.yamlToCompose('web:\n  image: jim/jimbob\n  volumes:\n   - "/j/b"\n');
-    });
-
-    it("From YAML with container volume and defined outside services", () => {
-        var transformer = new Transformer({
-            validateIntrusiveFeatures: true
-        });
-
-        return transformer.yamlToCompose('version: \'2.0\'\nservices:\n  web:\n    image: jim/jimbob\n    volumes:\n     - "some-container-volume:/j/b"\nvolumes:\n  data:\n   external: some-container-volume');
-    });
-
-    it("From YAML with container volume and defined outside services", () => {
-        var transformer = new Transformer({
-            validateIntrusiveFeatures: true
-        });
-
-        return transformer.yamlToCompose('version: \'2.0\'\nservices:\n  web:\n    image: jim/jimbob\n    volumes:\n     - "/j/b:/j/b"\nvolumes:\n  data:\n   external: some-container-volume')
-            .then(function () {
-                return Q.reject(new Error('The test should have failed on intrusive feature validation'));
-            }, function (err) {
-                expect(err.message).to.equal('Composition cannot mount volumes from the local filesystem');
+                return transformer.yamlToCompose('web:\n  image: jim/jimbob\n  ports:\n   - "5000:5000"\n  dontValidateIntrusiveFeatures: true\n')
+                    .then(function (res) {
+                        expect(res).to.deep.equal(`web:\n  image: jim/jimbob\n  ports:\n    - '5000:5000'\n`);
+                    });
             });
-    });
 
-
-    it("From YAML with container volume and intrusive validation switched on", () => {
-        var transformer = new Transformer({
-            validateIntrusiveFeatures: true
         });
 
-        return transformer.yamlToCompose('web:\n  image: jim/jimbob\n  volumes:\n   - "some-container-volume:/j/b"\n');
-    });
+        describe('volumes', function() {
 
-    it("From YAML with container volume and intrusive validation switched off", () => {
-        var transformer = new Transformer({
-            validateIntrusiveFeatures: false
-        });
+            it("From YAML with auto-created volume and intrusive validation switched on", () => {
+                var transformer = new Transformer({
+                    validateIntrusiveFeatures: true
+                });
 
-        return transformer.yamlToCompose('web:\n  image: jim/jimbob\n  volumes:\n   - "some-container-volume:/j/b"\n');
-    });
-
-    it("From YAML with local filesystem volumes and intrusive validation switched on", () => {
-        var transformer = new Transformer({
-            validateIntrusiveFeatures: true
-        });
-
-        return transformer.yamlToCompose('web:\n  image: jim/jimbob\n  volumes:\n   - "/jim/bob:/j/b"\n')
-            .then(function () {
-                return Q.reject(new Error('The test should have failed on intrusive feature validation'));
-            }, function (err) {
-                expect(err.message).to.equal('Composition cannot mount volumes from the local filesystem');
+                return transformer.yamlToCompose('web:\n  image: jim/jimbob\n  volumes:\n   - "/j/b"\n');
             });
-    });
 
-    it("From YAML with local filesystem volumes and intrusive validation switched off", () => {
-        var transformer = new Transformer({
-            validateIntrusiveFeatures: false
+            it("From YAML with auto-created volume and intrusive validation switched off", () => {
+                var transformer = new Transformer({
+                    validateIntrusiveFeatures: false
+                });
+
+                return transformer.yamlToCompose('web:\n  image: jim/jimbob\n  volumes:\n   - "/j/b"\n');
+            });
+
+            it("From YAML with container volume and defined outside services", () => {
+                var transformer = new Transformer({
+                    validateIntrusiveFeatures: true
+                });
+
+                return transformer.yamlToCompose('version: \'2.0\'\nservices:\n  web:\n    image: jim/jimbob\n    volumes:\n     - "some-container-volume:/j/b"\nvolumes:\n  data:\n   external: some-container-volume');
+            });
+
+            it("From YAML with container volume and defined outside services", () => {
+                var transformer = new Transformer({
+                    validateIntrusiveFeatures: true
+                });
+
+                return transformer.yamlToCompose('version: \'2.0\'\nservices:\n  web:\n    image: jim/jimbob\n    volumes:\n     - "/j/b:/j/b"\nvolumes:\n  data:\n   external: some-container-volume')
+                    .then(function () {
+                        return Q.reject(new Error('The test should have failed on intrusive feature validation'));
+                    }, function (err) {
+                        expect(err.message).to.equal('Composition cannot mount volumes from the local filesystem');
+                    });
+            });
+
+            it("From YAML with container volume and intrusive validation switched on", () => {
+                var transformer = new Transformer({
+                    validateIntrusiveFeatures: true
+                });
+
+                return transformer.yamlToCompose('web:\n  image: jim/jimbob\n  volumes:\n   - "some-container-volume:/j/b"\n');
+            });
+
+            it("From YAML with container volume and intrusive validation switched off", () => {
+                var transformer = new Transformer({
+                    validateIntrusiveFeatures: false
+                });
+
+                return transformer.yamlToCompose('web:\n  image: jim/jimbob\n  volumes:\n   - "some-container-volume:/j/b"\n');
+            });
+
+            it("From YAML with local filesystem volumes and intrusive validation switched on", () => {
+                var transformer = new Transformer({
+                    validateIntrusiveFeatures: true
+                });
+
+                return transformer.yamlToCompose('web:\n  image: jim/jimbob\n  volumes:\n   - "/jim/bob:/j/b"\n')
+                    .then(function () {
+                        return Q.reject(new Error('The test should have failed on intrusive feature validation'));
+                    }, function (err) {
+                        expect(err.message).to.equal('Composition cannot mount volumes from the local filesystem');
+                    });
+            });
+
+            it("From YAML with local filesystem volumes and intrusive validation switched off", () => {
+                var transformer = new Transformer({
+                    validateIntrusiveFeatures: false
+                });
+
+                return transformer.yamlToCompose('web:\n  image: jim/jimbob\n  volumes:\n   - "/jim/bob:/j/b"\n');
+            });
+
+            it("From YAML with mounted volumes and intrusive validation switched on and disable intrusive validation flag enabled on a service", function () {
+                var transformer = new Transformer({
+                    validateIntrusiveFeatures: true
+                });
+
+                return transformer.yamlToCompose('web:\n  image: jim/jimbob\n  volumes:\n   - "/jim/bob:/j/b"\n  dontValidateIntrusiveFeatures: true\n')
+                    .then(function (res) {
+                        expect(res).to.deep.equal(`web:\n  image: jim/jimbob\n  volumes:\n    - '/jim/bob:/j/b'\n`);
+                    });
+            });
+
         });
 
-        return transformer.yamlToCompose('web:\n  image: jim/jimbob\n  volumes:\n   - "/jim/bob:/j/b"\n');
-    });
+     });
 
     it("should run transform handler after replacement of composition vars", function () {
         var handlers = {
