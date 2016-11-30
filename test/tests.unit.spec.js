@@ -452,7 +452,44 @@ describe("Transform composition", function () {
             });
 
             it("From YAML with container volume and defined outside services", () => {
-                return Q.reject(new Error("err"));
+                var transformer = new Transformer({
+                    validateIntrusiveFeatures: true
+                });
+
+                var yamlInput = {
+                    version: 2,
+                    services: {
+                        web: {
+                            image: 'jim/jimbob',
+                            volumes: ["some-container-volume:/j/b"]
+                        }
+                    },
+                    volumes: {
+                        data: {
+                            external: "some-container-volume"
+                        }
+                    }
+                };
+
+                var yamlOutput = {
+                    version: 2,
+                    services: {
+                        web: {
+                            image: 'jim/jimbob',
+                            volumes: ["some-container-volume:/j/b"]
+                        }
+                    },
+                    volumes: {
+                        data: {
+                            external: "some-container-volume"
+                        }
+                    }
+                };
+
+                return transformer.yamlToCompose(YAML.dump(yamlInput))
+                    .then(function (res) {
+                        expect(YAML.safeLoad(res)).to.deep.equal(yamlOutput);
+                    });
             });
 
             it("From YAML with container volume and defined outside services", () => {
