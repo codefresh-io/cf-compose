@@ -2,7 +2,7 @@ var expect = require('chai').expect;
 var path = require('path');
 var _ = require('lodash');
 var Q = require('q');
-var YAML = require('yamljs');
+var YAML = require('js-yaml');
 
 var Transformer = require('../lib/transformer');
 
@@ -294,7 +294,7 @@ describe("Transform composition", function () {
                 transformer.fileToCompose()
                     .then(function (result) {
 
-                        result = YAML.parse(result);
+                        result = YAML.safeLoad(result);
 
                         if (!test.expected) {
                             console.log(JSON.stringify(result, null, 2));
@@ -315,7 +315,7 @@ describe("Transform composition", function () {
         transformer.yamlToCompose('web:\n  image: jim/jimbob\n  ports:\n   - "5000:5000"\n  environment:\n    ASD: $ASD\n')
             .then(function (result) {
 
-                result = YAML.parse(result);
+                result = YAML.safeLoad(result);
                 expect(result).to.deep.equal({"web": {"image": "jim/jimbob", "ports": ["5000:5000"], "environment": {"ASD": "thiisthevalue"}}});
                 done();
             })
@@ -331,7 +331,7 @@ describe("Transform composition", function () {
 
         transformer.jsonToCompose('{"web" : {"image" : "jim/jimbob", "ports" : ["6000:6000"], "environment": {"ASD": "$ASD"}}}')
             .then(function (result) {
-                result = YAML.parse(result);
+                result = YAML.safeLoad(result);
                 expect(result).to.deep.equal({"web": {"image": "jim/jimbob", "ports": ["6000:6000"], "environment": {"ASD": "thiisthevalue"}}});
                 done();
             })
@@ -347,7 +347,7 @@ describe("Transform composition", function () {
 
         transformer.objectToCompose({web: {image: 'jim/bob', ports: ['6000:6000'], environment: {ASD: '$ASD'}}})
             .then(function (result) {
-                result = YAML.parse(result);
+                result = YAML.safeLoad(result);
                 expect(result).to.deep.equal({"web": {"image": "jim/bob", "ports": ["6000:6000"], "environment": {"ASD": "thiisthevalue"}}});
                 done();
             })
@@ -379,12 +379,58 @@ describe("Transform composition", function () {
                     validateIntrusiveFeatures: true
                 });
 
-                return transformer.yamlToCompose('web:\n  image: jim/jimbob\n  ports:\n   - "5000:5000"\n  dontValidateIntrusiveFeatures: true\n')
+                var yamlInput = {
+                    web: {
+                        image: 'jim/jimbob',
+                        ports: ["5000:5000"],
+                        dontValidateIntrusiveFeatures: true
+                    }
+                };
+
+                var yamlOutput = {
+                    web: {
+                        image: 'jim/jimbob',
+                        ports: ["5000:5000"]
+                    }
+                };
+
+                return transformer.yamlToCompose(YAML.dump(yamlInput))
                     .then(function (res) {
-                        expect(res).to.deep.equal(`web:\n  image: jim/jimbob\n  ports:\n    - '5000:5000'\n`);
+                        expect(YAML.safeLoad(res)).to.deep.equal(yamlOutput);
                     });
             });
 
+            it("From YAML with explicit ports and intrusive validation switched on and disable intrusive validation flag enabled on a service", function () {
+                var transformer = new Transformer({
+                    validateIntrusiveFeatures: true
+                });
+
+                var yamlInput = {
+                    version: 2,
+                    services: {
+                        web: {
+                            image: 'jim/jimbob',
+                            ports: ["5000:5000"],
+                            dontValidateIntrusiveFeatures: true
+                        }
+                    }
+                };
+
+                var yamlOutput = {
+                    version: 2,
+                    services: {
+                        web: {
+                            image: 'jim/jimbob',
+                            ports: ["5000:5000"]
+                        }
+                    }
+                };
+
+                return transformer.yamlToCompose(YAML.dump(yamlInput))
+                    .then(function (res) {
+                        expect(YAML.safeLoad(res)).to.deep.equal(yamlOutput);
+                    });
+            });
         });
 
         describe('volumes', function() {
@@ -406,11 +452,7 @@ describe("Transform composition", function () {
             });
 
             it("From YAML with container volume and defined outside services", () => {
-                var transformer = new Transformer({
-                    validateIntrusiveFeatures: true
-                });
-
-                return transformer.yamlToCompose('version: \'2.0\'\nservices:\n  web:\n    image: jim/jimbob\n    volumes:\n     - "some-container-volume:/j/b"\nvolumes:\n  data:\n   external: some-container-volume');
+                return Q.reject(new Error("err"));
             });
 
             it("From YAML with container volume and defined outside services", () => {
@@ -418,7 +460,22 @@ describe("Transform composition", function () {
                     validateIntrusiveFeatures: true
                 });
 
-                return transformer.yamlToCompose('version: \'2.0\'\nservices:\n  web:\n    image: jim/jimbob\n    volumes:\n     - "/j/b:/j/b"\nvolumes:\n  data:\n   external: some-container-volume')
+                var yamlInput = {
+                    version: 2,
+                    services: {
+                        web: {
+                            image: 'jim/jimbob',
+                            volumes: ["/j/b:/j/b"]
+                        }
+                    },
+                    volumes: {
+                        data: {
+                            external: "some-container-volume"
+                        }
+                    }
+                };
+
+                return transformer.yamlToCompose(YAML.dump(yamlInput))
                     .then(function () {
                         return Q.reject(new Error('The test should have failed on intrusive feature validation'));
                     }, function (err) {
@@ -474,6 +531,38 @@ describe("Transform composition", function () {
                     });
             });
 
+            it("From YAML with mounted volumes and intrusive validation switched on and disable intrusive validation flag enabled on a service", function () {
+                var transformer = new Transformer({
+                    validateIntrusiveFeatures: true
+                });
+
+                var yamlInput = {
+                    version: 2,
+                    services: {
+                        web: {
+                            image: 'jim/jimbob',
+                            volumes: ["/jim/bob:/j/b"],
+                            dontValidateIntrusiveFeatures: true
+                        }
+                    }
+                };
+
+                var yamlOutput = {
+                    version: 2,
+                    services: {
+                        web: {
+                            image: 'jim/jimbob',
+                            volumes: ["/jim/bob:/j/b"]
+                        }
+                    }
+                };
+
+                return transformer.yamlToCompose(YAML.dump(yamlInput))
+                    .then(function (res) {
+                        expect(YAML.safeLoad(res)).to.deep.equal(yamlOutput);
+                    });
+            });
+
         });
 
      });
@@ -505,7 +594,7 @@ describe("Transform composition", function () {
         return transformer.fileToCompose()
             .then(function (result) {
 
-                result = YAML.parse(result);
+                result = YAML.safeLoad(result);
 
                 expect(result).to.deep.equal(expected);
             });
@@ -532,7 +621,7 @@ describe("Transform composition", function () {
         return transformer.fileToCompose()
             .then(function (result) {
 
-                result = YAML.parse(result);
+                result = YAML.safeLoad(result);
 
                 expect(result).to.deep.equal(expected);
             });
