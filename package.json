@@ -1,6 +1,6 @@
 {
   "name": "cf-compose",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "codefresh compose utility",
   "main": "index.js",
   "bin": {
@@ -13,8 +13,9 @@
   "license": "ISC",
   "dependencies": {
     "commander": "^2.9.0",
+    "jest": "^27.1.0",
     "js-yaml": "^3.4.6",
-    "lodash": "^3.10.1",
+    "lodash": "^4.17.20",
     "mustache": "^2.2.1",
     "q": "^1.4.1",
     "yamljs": "^0.2.4"
