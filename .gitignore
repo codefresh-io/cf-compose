@@ -1,4 +1,5 @@
 node_modules/
+.vscode/
 # Coverage directory used by tools like istanbul
 coverage/*.html
 .coverrun
